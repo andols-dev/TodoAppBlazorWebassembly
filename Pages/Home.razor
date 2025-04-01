@@ -1,0 +1,187 @@
+﻿@* @page "/"
+@using TodoAppExercise.Models
+@using TodoAppExercise.Services
+
+@inject ITodoTask TodoTaskService
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<input type="text" @bind="TodoTaskService.TodoFromInput" />
+<textarea @bind="TodoTaskService.Description">
+
+</textarea>
+<button @onclick="TodoTaskService.AddTask">Add Todo</button>
+
+
+
+
+
+@if(TodoTaskService.AllActiveTasks.Any())
+{
+    <h1>Active tasks</h1>
+    <ul>
+        @foreach(var item in TodoTaskService.AllActiveTasks)
+        {
+            <li>Name @item.Name</li>
+            <li>Description: @item.Description</li>
+            <li>Created: @item.Created</li>
+            <li><button @onclick="() => TodoTaskService.RemoveTask(item.Id)">Remove task</button></li>
+            <li><button @onclick="() => TodoTaskService.CompletedTask(item.Id)">Completed</button></li>
+        }
+    </ul>
+}
+else
+{
+    <h1>No active tasks</h1>
+}
+
+
+@if(TodoTaskService.Tasks.Any(t => t.IsActive == false))
+{
+    <h1>Completed tasks</h1>
+    <ul>
+        @foreach (var item in TodoTaskService.Tasks.Where(t => t.IsActive == false))
+        {
+            <li>@item.Name</li>
+        }
+    </ul>
+}
+else
+{
+    <h1>No completed tasks</h1>
+}
+ *@
+
+            @page "/"
+@using TodoAppExercise.Models
+@using TodoAppExercise.Services
+
+
+@inject ITodoTask TodoTaskService
+@using Blazored.Toast.Configuration
+@inject IToastService toastService
+
+<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="3"
+                ShowProgressBar="true" />
+<PageTitle>Home</PageTitle>
+
+
+<h1>Toast Demo</h1>
+
+To show a toast just click one of the buttons below.
+
+<button class="btn btn-info" @onclick="@(() => toastService.ShowInfo("I'm an INFO message"))">Info Toast</button>
+<div class="container my-4">
+    <h1 class="text-center mb-4">Todo App</h1>
+
+    <!-- Input Form Section -->
+    <div class="mb-4">
+        <h3>Create a New Task</h3>
+        <div class="mb-3">
+            <label for="taskName" class="form-label">Task Name</label>
+            <input type="text" id="taskName" class="form-control" @bind="TodoTaskService.TodoFromInput" placeholder="Enter task name" />
+        </div>
+        <div class="mb-3">
+            <label for="taskDescription" class="form-label">Description</label>
+            <textarea id="taskDescription" class="form-control" @bind="TodoTaskService.Description" placeholder="Enter task description"></textarea>
+        </div>
+        <button class="btn btn-primary" @onclick="TodoTaskService.AddTask">Add Todo</button>
+    </div>
+
+    <!-- Active Tasks Section -->
+    @if (TodoTaskService.AllActiveTasks.Any())
+    {
+        <div class="mt-5">
+            <h2>Active Tasks</h2>
+            <ul class="list-group">
+                @foreach (var item in TodoTaskService.AllActiveTasks)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @if (TodoTaskService.IsUpdating != true)
+                        { 
+                            <div>
+                                <strong>@item.Name</strong>
+                                <p>@item.Description</p>
+                                <small class="text-muted">Created: @item.Created</small>
+                            </div>
+                            <div>
+                                <button class="btn btn-danger btn-sm" @onclick="() => TodoTaskService.RemoveTask(item.Id)">
+                                    Remove
+                                </button>
+                                <button class="btn btn-success btn-sm ms-2" @onclick="() => TodoTaskService.CompletedTask(item.Id)">
+                                    Mark as Completed
+                                </button>
+                                <button class="btn btn-warning btn-sm ms-2" @onclick="() => TodoTaskService.OpenUpdateTaskForm(item)">
+                                    Update
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+ @*                            <p>updating</p>
+                            <button @onclick="TodoTaskService.CancelUpdate">cancel</button>
+                            <button>save</button> *@
+                            <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+                                <div class="border p-4 rounded" style="max-width: 600px; width: 100%; margin-top: 10px; margin-bottom: 10px;">
+                                    <h2 class="text-center mb-3">Edit Task</h2>
+                                    <div class="mb-3">
+                                        <label for="updateTaskName" class="form-label">Task Name</label>
+                                        <input type="text" id="updateTaskName" class="form-control" @bind="TodoTaskService.TaskToUpdate.Name" placeholder="Update task name" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateTaskDescription" class="form-label">Description</label>
+                                        <textarea id="updateTaskDescription" class="form-control" @bind="TodoTaskService.TaskToUpdate.Description" placeholder="Update task description"></textarea>
+                                    </div>
+
+                                    <!-- Knappar under fälten -->
+                                    <div class="d-flex flex-column gap-3 mt-2">
+                                        <button class="btn btn-primary" @onclick="() => TodoTaskService.UpdateTask(item.Name,item.Description)">Save Changes</button>
+                                        <button class="btn btn-secondary" @onclick="TodoTaskService.CancelUpdate">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <div class="mt-5">
+            <h2>No Active Tasks</h2>
+            <p class="text-muted">You don't have any active tasks right now.</p>
+        </div>
+    }
+
+    <!-- Completed Tasks Section -->
+    @if (TodoTaskService.Tasks.Any(t => t.IsActive == false))
+    {
+        <div class="mt-5">
+            <h2>Completed Tasks</h2>
+            <ul class="list-group">
+                @foreach (var item in TodoTaskService.Tasks.Where(t => t.IsActive == false))
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@item.Name</strong>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <div class="mt-5">
+            <h2>No Completed Tasks</h2>
+            <p class="text-muted">You haven't completed any tasks yet.</p>
+        </div>
+    }
+</div>
+
